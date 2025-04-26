@@ -1,4 +1,4 @@
-# ANON V3 - Executive Dashboard for Tata AutoComp
+# ANON V3.1 - Executive Dashboard for Tata AutoComp
 
 import streamlit as st
 import pandas as pd
@@ -9,7 +9,7 @@ from datetime import datetime
 from PIL import Image
 
 # --- PAGE CONFIG ---
-st.set_page_config(page_title="ANON V3 | Tata AutoComp", layout="wide", page_icon="📊")
+st.set_page_config(page_title="ANON V3.1 | Tata AutoComp", layout="wide", page_icon="📊")
 
 # --- HEADER STYLE ---
 st.markdown("""
@@ -50,7 +50,11 @@ ideas_df = st.session_state.ideas_df
 
 # --- DASHBOARD PAGE ---
 if page == "🏠 Dashboard":
-    st.subheader("📊 Mood Dashboard Overview")
+    with st.container():
+        st.subheader("👋 Welcome back, Anonymous Innovator!")
+        st.markdown("*Leadership with Trust — Tata AutoComp.*")
+        st.divider()
+
     col1, col2, col3 = st.columns(3)
     with col1:
         st.metric("💡 Total Ideas", len(ideas_df))
@@ -61,19 +65,25 @@ if page == "🏠 Dashboard":
         positivity = (ideas_df['mood'].value_counts().get("😊", 0) / len(ideas_df)) * 100 if len(ideas_df) > 0 else 0
         st.metric("🚀 Positivity Rate", f"{positivity:.1f}%")
 
-    # Trend over time
+    st.divider()
+
+    # Mood Trendline
     st.markdown("### 📈 Mood Trend Over Time")
     mood_counts = ideas_df.groupby(ideas_df['timestamp'].dt.date).size()
     fig_trend = px.line(x=mood_counts.index, y=mood_counts.values, labels={'x': 'Date', 'y': 'Ideas Submitted'}, markers=True)
-    fig_trend.update_traces(line_color='#0066b3', line_width=2)
+    fig_trend.update_traces(line_color='#0066b3', line_width=3)
+    fig_trend.update_layout(plot_bgcolor='white', paper_bgcolor='white')
     st.plotly_chart(fig_trend, use_container_width=True)
 
-    # Mood Distribution Donut
+    st.divider()
+
+    # Mood Donut
     st.markdown("### 📊 Mood Distribution")
     mood_dist = ideas_df['mood'].value_counts()
-    fig_donut = px.pie(values=mood_dist.values, names=mood_dist.index, hole=0.4,
-                       color_discrete_sequence=px.colors.sequential.Blues)
-    fig_donut.update_traces(textinfo='percent+label')
+    fig_donut = px.pie(values=mood_dist.values, names=mood_dist.index, hole=0.5,
+                       color_discrete_sequence=["#ff4b5c", "#ffb86b", "#ffd93d", "#8de969", "#66b2ff"])
+    fig_donut.update_traces(textinfo='percent+label', pull=[0.05]*len(mood_dist))
+    fig_donut.update_layout(showlegend=True, plot_bgcolor='white', paper_bgcolor='white')
     st.plotly_chart(fig_donut, use_container_width=True)
 
 # --- SUBMIT IDEA PAGE ---
