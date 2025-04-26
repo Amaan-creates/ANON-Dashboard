@@ -12,7 +12,7 @@ from PIL import Image
 st.set_page_config(page_title="ANON Dashboard | Tata AutoComp", layout="wide", page_icon="📈")
 
 # --- LOAD LOGO ---
-logo = Image.open('assets/tata_autocomp_systems_ltd_logo.jpeg')
+logo = Image.open('tata_autocomp_systems_ltd_logo.jpeg')
 
 # --- HEADER ---
 st.sidebar.image(logo, width=150)
