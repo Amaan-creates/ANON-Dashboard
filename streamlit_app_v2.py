@@ -100,7 +100,7 @@ elif page == "🧩 Submit Idea":
 elif page == "🧠 AI Insights":
     st.subheader("🧠 Topic Clustering Insights")
     if len(ideas_df) > 2:
-        topic_model = BERTopic(language="english", verbose=False)
+       topic_model = BERTopic(language="english", umap_model=None, verbose=False)
         topics, _ = topic_model.fit_transform(ideas_df["text"])
         ideas_df['topic'] = topics
 
