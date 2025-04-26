@@ -1,38 +1,42 @@
-# ANON V2: Tata AutoComp Innovation Dashboard (Streamlit version)
+# ANON V3 - Executive Dashboard for Tata AutoComp
 
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 from wordcloud import WordCloud
-from datetime import datetime
 from bertopic import BERTopic
+from datetime import datetime
 from PIL import Image
 
 # --- PAGE CONFIG ---
-st.set_page_config(page_title="ANON Dashboard | Tata AutoComp", layout="wide", page_icon="📈")
+st.set_page_config(page_title="ANON V3 | Tata AutoComp", layout="wide", page_icon="📊")
 
-# --- LOAD LOGO ---
-logo = Image.open('tata_autocomp_systems_ltd_logo.jpeg')
-
-# --- HEADER ---
-st.sidebar.image(logo, width=150)
-st.sidebar.title("Navigation")
-page = st.sidebar.radio("", ["🏠 Dashboard", "🧩 Submit Idea", "🧠 AI Insights", "🔄 Tone Translator", "📥 Export"])
-
+# --- HEADER STYLE ---
 st.markdown("""
-    <div style="background-color:#0066b3;padding:10px;border-radius:10px;margin-bottom:20px;">
-        <h1 style="color:white;text-align:center;">ANON: Tata AutoComp Innovation Hub</h1>
+    <div style="background-color:#0066b3;padding:1rem;border-radius:8px;margin-bottom:1rem;text-align:center;">
+        <h1 style="color:white;">ANON: Tata AutoComp Innovation Hub</h1>
     </div>
 """, unsafe_allow_html=True)
 
-# --- INITIALISE DATA ---
+# --- LOGO ---
+try:
+    logo = Image.open('tata_autocomp_systems_ltd_logo.jpeg')
+    st.sidebar.image(logo, width=150)
+except:
+    st.sidebar.warning("Logo not found.")
+
+# --- NAVIGATION ---
+st.sidebar.title("Navigation")
+page = st.sidebar.radio("", ["🏠 Dashboard", "🧩 Submit Idea", "🧠 AI Insights", "📥 Export"])
+
+# --- DATA INITIALISATION ---
 if 'ideas_df' not in st.session_state:
     sample_ideas = [
-        "Cross-department collaboration is slow.",
+        "Cross-team collaboration slow.",
         "Promotion paths unclear.",
-        "Need for better EV assembly documentation.",
-        "Meeting overload reduces project sprint speed.",
-        "Wellbeing affected by workload pressure."
+        "Improve EV battery assembly process.",
+        "Too many meetings affecting sprints.",
+        "Pressure during deadlines affecting wellbeing."
     ]
     moods = ["😠", "🙂", "🤔", "😐", "😊"]
     st.session_state.ideas_df = pd.DataFrame([{
@@ -44,76 +48,74 @@ if 'ideas_df' not in st.session_state:
 
 ideas_df = st.session_state.ideas_df
 
-# --- PAGES ---
-
-# 🏠 Dashboard
+# --- DASHBOARD PAGE ---
 if page == "🏠 Dashboard":
-    st.subheader("📊 Mood Dashboard")
+    st.subheader("📊 Mood Dashboard Overview")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("💡 Total Ideas", len(ideas_df))
+    with col2:
+        most_common_mood = ideas_df['mood'].mode()[0] if not ideas_df.empty else "N/A"
+        st.metric("😊 Top Mood", most_common_mood)
+    with col3:
+        positivity = (ideas_df['mood'].value_counts().get("😊", 0) / len(ideas_df)) * 100 if len(ideas_df) > 0 else 0
+        st.metric("🚀 Positivity Rate", f"{positivity:.1f}%")
 
-    st.markdown("### Mood Distribution")
-    mood_counts = ideas_df['mood'].value_counts()
-    fig = px.bar(x=mood_counts.index, y=mood_counts.values, labels={'x': 'Mood', 'y': 'Count'}, color_discrete_sequence=['#0066b3'])
-    st.plotly_chart(fig)
+    # Trend over time
+    st.markdown("### 📈 Mood Trend Over Time")
+    mood_counts = ideas_df.groupby(ideas_df['timestamp'].dt.date).size()
+    fig_trend = px.line(x=mood_counts.index, y=mood_counts.values, labels={'x': 'Date', 'y': 'Ideas Submitted'}, markers=True)
+    fig_trend.update_traces(line_color='#0066b3')
+    st.plotly_chart(fig_trend, use_container_width=True)
 
-    st.markdown("### WordCloud of Ideas")
-    text = " ".join(ideas_df["text"])
-    if text.strip():
-        wc = WordCloud(width=800, height=400, background_color="white").generate(text)
-        st.image(wc.to_array())
-    else:
-        st.warning("No text available yet.")
+    # Mood Distribution Donut
+    st.markdown("### 📊 Mood Distribution")
+    mood_dist = ideas_df['mood'].value_counts()
+    fig_donut = px.pie(values=mood_dist.values, names=mood_dist.index, hole=0.4)
+    fig_donut.update_traces(textinfo='percent+label', marker_colors=px.colors.sequential.Blues)
+    st.plotly_chart(fig_donut, use_container_width=True)
 
-# 🧩 Submit Idea
+# --- SUBMIT IDEA PAGE ---
 elif page == "🧩 Submit Idea":
     st.subheader("🧩 Submit a New Idea")
-    with st.form("idea_form"):
-        idea_text = st.text_area("Enter your idea:")
-        mood = st.selectbox("How do you feel?", ["😠 Frustrated", "🙂 Hopeful", "🤔 Confused", "😐 Neutral", "😊 Excited"])
-        submitted = st.form_submit_button("Submit")
-        if submitted:
+    with st.form("submit_form"):
+        idea_text = st.text_area("Share your anonymous idea:")
+        mood_choice = st.radio("How do you feel?", ["😠 Frustrated", "🙂 Hopeful", "🤔 Confused", "😐 Neutral", "😊 Excited"])
+        submit = st.form_submit_button("Submit")
+        if submit:
             if idea_text.strip():
                 new_row = {
                     "text": idea_text.strip(),
-                    "mood": mood,
+                    "mood": mood_choice,
                     "timestamp": datetime.now(),
                     "status": "🟡 New"
                 }
                 st.session_state.ideas_df = pd.concat([st.session_state.ideas_df, pd.DataFrame([new_row])], ignore_index=True)
-                st.success("✅ Idea submitted successfully.")
+                st.success("✅ Idea submitted successfully!")
                 st.experimental_rerun()
             else:
-                st.warning("Please enter a valid idea.")
+                st.warning("Please write an idea before submitting.")
 
-# 🧠 AI Insights
+# --- AI INSIGHTS PAGE ---
 elif page == "🧠 AI Insights":
-    st.subheader("🧠 AI-Powered Clustering")
-
-    if not ideas_df.empty:
+    st.subheader("🧠 Topic Clustering Insights")
+    if len(ideas_df) > 2:
         topic_model = BERTopic(language="english", verbose=False)
         topics, _ = topic_model.fit_transform(ideas_df["text"])
         ideas_df['topic'] = topics
 
-        topic_info = topic_model.get_topic_info()
-        st.dataframe(topic_info.head())
+        fig_topics = topic_model.visualize_barchart(top_n_topics=5)
+        st.plotly_chart(fig_topics, use_container_width=True)
 
-        st.plotly_chart(topic_model.visualize_topics())
+        st.markdown("### Top Topics Detected:")
+        st.dataframe(topic_model.get_topic_info().head(5))
     else:
-        st.warning("No ideas to analyze yet.")
+        st.warning("Not enough ideas yet for clustering. Need at least 3.")
 
-# 🔄 Tone Translator
-elif page == "🔄 Tone Translator":
-    st.subheader("🔄 Tone Translator")
-    text_input = st.text_area("Enter the technical/engineering phrase:")
-    if st.button("Translate"):
-        if text_input.strip():
-            mgmt_tone = f"We acknowledge the concern: '{text_input}'. This will be reviewed proactively."
-            st.success(f"📢 Management Version:\n\n{mgmt_tone}")
-        else:
-            st.warning("Please enter text to translate.")
-
-# 📥 Export
+# --- EXPORT PAGE ---
 elif page == "📥 Export":
-    st.subheader("📥 Export Ideas Data")
+    st.subheader("📥 Export Data")
     st.dataframe(ideas_df)
     csv = ideas_df.to_csv(index=False).encode('utf-8')
-    st.download_button("Download CSV", csv, file_name="anon_ideas_export.csv")
+    st.download_button("Download CSV", csv, "anon_dashboard_data.csv", "text/csv")
+
