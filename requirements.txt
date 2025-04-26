@@ -1,0 +1,8 @@
+streamlit
+bertopic
+sentence-transformers
+pandas
+plotly
+matplotlib
+wordcloud
+Pillow
