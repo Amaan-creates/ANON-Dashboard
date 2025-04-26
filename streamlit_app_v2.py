@@ -1,17 +1,17 @@
-# ANON V3.1 - Executive Dashboard for Tata AutoComp
+# ANON V3.2 - Executive Dashboard for Tata AutoComp
 
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from wordcloud import WordCloud
 from bertopic import BERTopic
 from datetime import datetime
 from PIL import Image
+from wordcloud import WordCloud
 
 # --- PAGE CONFIG ---
-st.set_page_config(page_title="ANON V3.1 | Tata AutoComp", layout="wide", page_icon="📊")
+st.set_page_config(page_title="ANON V3.2 | Tata AutoComp", layout="wide", page_icon="📊")
 
-# --- HEADER STYLE ---
+# --- HEADER ---
 st.markdown("""
     <div style="background-color:#0066b3;padding:1rem;border-radius:8px;margin-bottom:1rem;text-align:center;">
         <h1 style="color:white;">ANON: Tata AutoComp Innovation Hub</h1>
@@ -25,18 +25,18 @@ try:
 except:
     st.sidebar.warning("Logo not found.")
 
-# --- NAVIGATION ---
+# --- SIDEBAR NAVIGATION ---
 st.sidebar.title("Navigation")
 page = st.sidebar.radio("", ["🏠 Dashboard", "🧩 Submit Idea", "🧠 AI Insights", "🔄 Tone Translator", "📥 Export"])
 
-# --- DATA INITIALISATION ---
+# --- INITIALIZE DATA ---
 if 'ideas_df' not in st.session_state:
     sample_ideas = [
-        "Cross-team collaboration slow.",
-        "Promotion paths unclear.",
-        "Improve EV battery assembly process.",
-        "Too many meetings affecting sprints.",
-        "Pressure during deadlines affecting wellbeing."
+        "Cross-team collaboration is slow.",
+        "Promotion pathways are unclear.",
+        "Improve EV battery assembly documentation.",
+        "Too many meetings delay project sprints.",
+        "Deadline pressure impacts mental health."
     ]
     moods = ["😠", "🙂", "🤔", "😐", "😊"]
     st.session_state.ideas_df = pd.DataFrame([{
@@ -55,6 +55,7 @@ if page == "🏠 Dashboard":
         st.markdown("*Leadership with Trust — Tata AutoComp.*")
         st.divider()
 
+    # KPI Cards
     col1, col2, col3 = st.columns(3)
     with col1:
         st.metric("💡 Total Ideas", len(ideas_df))
@@ -67,23 +68,34 @@ if page == "🏠 Dashboard":
 
     st.divider()
 
-    # Mood Trendline
+    # Mood Trend Chart
     st.markdown("### 📈 Mood Trend Over Time")
     mood_counts = ideas_df.groupby(ideas_df['timestamp'].dt.date).size()
     fig_trend = px.line(x=mood_counts.index, y=mood_counts.values, labels={'x': 'Date', 'y': 'Ideas Submitted'}, markers=True)
-    fig_trend.update_traces(line_color='#0066b3', line_width=3)
-    fig_trend.update_layout(plot_bgcolor='white', paper_bgcolor='white')
+    fig_trend.update_layout(
+        plot_bgcolor='#0E1117',
+        paper_bgcolor='#0E1117',
+        font_color='white',
+        xaxis_title_font=dict(color='white'),
+        yaxis_title_font=dict(color='white')
+    )
+    fig_trend.update_traces(line=dict(color="#66b2ff", width=3))
     st.plotly_chart(fig_trend, use_container_width=True)
 
     st.divider()
 
-    # Mood Donut
+    # Mood Donut Chart
     st.markdown("### 📊 Mood Distribution")
     mood_dist = ideas_df['mood'].value_counts()
     fig_donut = px.pie(values=mood_dist.values, names=mood_dist.index, hole=0.5,
-                       color_discrete_sequence=["#ff4b5c", "#ffb86b", "#ffd93d", "#8de969", "#66b2ff"])
+                       color_discrete_sequence=["#79B4B7", "#A9D6E5", "#F4F1BB", "#FFD6A5", "#FFADAD"])
     fig_donut.update_traces(textinfo='percent+label', pull=[0.05]*len(mood_dist))
-    fig_donut.update_layout(showlegend=True, plot_bgcolor='white', paper_bgcolor='white')
+    fig_donut.update_layout(
+        showlegend=True,
+        plot_bgcolor='#0E1117',
+        paper_bgcolor='#0E1117',
+        font_color='white'
+    )
     st.plotly_chart(fig_donut, use_container_width=True)
 
 # --- SUBMIT IDEA PAGE ---
