@@ -65,14 +65,15 @@ if page == "🏠 Dashboard":
     st.markdown("### 📈 Mood Trend Over Time")
     mood_counts = ideas_df.groupby(ideas_df['timestamp'].dt.date).size()
     fig_trend = px.line(x=mood_counts.index, y=mood_counts.values, labels={'x': 'Date', 'y': 'Ideas Submitted'}, markers=True)
-    fig_trend.update_traces(line_color='#0066b3')
+    fig_trend.update_traces(line_color='#0066b3', line_width=2)
     st.plotly_chart(fig_trend, use_container_width=True)
 
     # Mood Distribution Donut
     st.markdown("### 📊 Mood Distribution")
     mood_dist = ideas_df['mood'].value_counts()
-    fig_donut = px.pie(values=mood_dist.values, names=mood_dist.index, hole=0.4)
-    fig_donut.update_traces(textinfo='percent+label', marker_colors=px.colors.sequential.Blues)
+    fig_donut = px.pie(values=mood_dist.values, names=mood_dist.index, hole=0.4,
+                       color_discrete_sequence=px.colors.sequential.Blues)
+    fig_donut.update_traces(textinfo='percent+label')
     st.plotly_chart(fig_donut, use_container_width=True)
 
 # --- SUBMIT IDEA PAGE ---
@@ -100,7 +101,7 @@ elif page == "🧩 Submit Idea":
 elif page == "🧠 AI Insights":
     st.subheader("🧠 Topic Clustering Insights")
     if len(ideas_df) > 2:
-       topic_model = BERTopic(language="english", umap_model=None, verbose=False)
+        topic_model = BERTopic(language="english", umap_model=None, verbose=False)
         topics, _ = topic_model.fit_transform(ideas_df["text"])
         ideas_df['topic'] = topics
 
