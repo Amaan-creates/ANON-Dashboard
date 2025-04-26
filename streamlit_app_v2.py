@@ -27,7 +27,7 @@ except:
 
 # --- NAVIGATION ---
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("", ["🏠 Dashboard", "🧩 Submit Idea", "🧠 AI Insights", "📥 Export"])
+page = st.sidebar.radio("", ["🏠 Dashboard", "🧩 Submit Idea", "🧠 AI Insights", "🔄 Tone Translator", "📥 Export"])
 
 # --- DATA INITIALISATION ---
 if 'ideas_df' not in st.session_state:
@@ -112,10 +112,34 @@ elif page == "🧠 AI Insights":
     else:
         st.warning("Not enough ideas yet for clustering. Need at least 3.")
 
+# --- TONE TRANSLATOR PAGE ---
+elif page == "🔄 Tone Translator":
+    st.subheader("🔄 Language/Tone Translator")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("**Enter Engineering/Technical Language:**")
+        tech_input = st.text_area("Engineering phrasing", placeholder="e.g., 'Server response latency exceeded threshold.'")
+        tone_option = st.selectbox("Select Tone Style", ["Formal", "Action-Oriented", "Soft Reassurance"])
+
+    with col2:
+        st.markdown("**Management-Friendly Version:**")
+        if tech_input.strip():
+            if tone_option == "Formal":
+                output = f"Observations indicate that '{tech_input}' is impacting performance. A review is underway to address this promptly."
+            elif tone_option == "Action-Oriented":
+                output = f"We are actively mitigating the issue: '{tech_input}'. Teams are implementing corrective actions."
+            elif tone_option == "Soft Reassurance":
+                output = f"While '{tech_input}' has been detected, proactive measures are underway to ensure system stability."
+            else:
+                output = "Translation in progress..."
+            st.success(output)
+        else:
+            st.info("Waiting for input...")
+
 # --- EXPORT PAGE ---
 elif page == "📥 Export":
     st.subheader("📥 Export Data")
     st.dataframe(ideas_df)
     csv = ideas_df.to_csv(index=False).encode('utf-8')
     st.download_button("Download CSV", csv, "anon_dashboard_data.csv", "text/csv")
-
