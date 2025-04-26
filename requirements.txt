@@ -1,8 +1,8 @@
 streamlit
-bertopic
-sentence-transformers
 pandas
 plotly
 matplotlib
 wordcloud
+sentence-transformers
+bertopic
 Pillow
